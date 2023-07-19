@@ -85,18 +85,18 @@ const ChatScreen = () => {
     // KeyboardAvoidingView will automatically adjust its height, position, or bottom padding based on the keyboard height to remain visible while the virtual keyboard is displayed.
     // View container that supports layout with flexbox, style, some touch handling, and accessibility controls.
     <SafeAreaView style={styles.container}>
-      {/* <KeyboardAvoidingView
+      <KeyboardAvoidingView
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      > */}
+      >
 
 {cameraVisible ? (
           // Render the camera view when cameraVisible is true
         <View style={styles.cameraContainer}>
 <Camera style={styles.camera} ref={cameraRef} onCameraReady={() => setIsCameraReady(true)} />
           <View style={styles.cameraButtonsContainer}>
-            <Button title="Take Picture" onPress={takePicture} />
-            <Button title="Close Camera" onPress={handleCloseCamera} />
+            <Button color= "#06b6d4" title="Take Picture" onPress={takePicture} />
+            <Button color= "#06b6d4" title="Close Camera" onPress={handleCloseCamera} />
           </View>
         </View>
       ) : (
@@ -127,12 +127,16 @@ const ChatScreen = () => {
               placeholder="Type your message"
               placeholderTextColor="#888888"
             />
-            <Button title="Send" onPress={handleSendMessage} />
-            <Button title="Open Camera" onPress={handleOpenCamera} />
+            <Button 
+            color= "#06b6d4" 
+            title="Send" onPress={handleSendMessage} />
+            <Button 
+            color= "#06b6d4"
+            title="Open Camera" onPress={handleOpenCamera} />
           </View>
         </View>
               )}
-      {/* </KeyboardAvoidingView> */}
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };

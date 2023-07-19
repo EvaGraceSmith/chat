@@ -20,7 +20,7 @@ const App = () => {
         h="100%"
         bg={{
           linearGradient: {
-            colors: ['green.600', 'primary.600'],
+            colors: ['lime.300', 'primary.500'],
             start: [0, 0],
             end: [1, 0],
           },
