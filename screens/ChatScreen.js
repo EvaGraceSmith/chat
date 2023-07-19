@@ -8,6 +8,7 @@ import {
     KeyboardAvoidingView,
     Platform,
     SafeAreaView,
+    TouchableOpacity,
     StyleSheet,
   } from 'react-native';
   import { Camera } from 'expo-camera';
@@ -17,11 +18,13 @@ const ChatScreen = () => {
   //setting our initial state for messages/chat messages
   const [message, setMessage] = useState('');
   const [chatMessages, setChatMessages] = useState([]);
-  const [cameraVisible, setCameraVisible] = useState(false); // Track camera visibility
-  const [isCameraReady, setIsCameraReady] = useState(false);
-  const [camera, setCamera] = useState(null);
+  //const [cameraVisible, setCameraVisible] = useState(false); // Track camera visibility
+  //const [isCameraReady, setIsCameraReady] = useState(false);
+  //const [camera, setCamera] = useState(null);
+  //const [previewVisible, setPreviewVisible] = useState(false);
+  //const [capturedImage, setCapturedImage] = useState(null);
 
-  const cameraRef = useRef(null); // Reference to the camera component
+  //const cameraRef = useRef(null); // Reference to the camera component
 
   //handler for messages/chat messages
   const handleSendMessage = () => {
@@ -38,47 +41,104 @@ const ChatScreen = () => {
     }
   };
 
-  const handleOpenCamera = () => {
-    setCameraVisible(true);
-  };
+  // const handleOpenCamera = () => {
+  //   setCameraVisible(true);
+  // };
 
-  const handleCloseCamera = () => {
-    setIsCameraReady(false);
-    setCameraVisible(false);
-  };
+  // const handleCloseCamera = () => {
+  //   setIsCameraReady(false);
+  //   setCameraVisible(false);
+  // };
+
+  // useEffect(() => {
+  //   // Ask for camera permission when the component mounts
+  //   (async () => {
+  //       const { status } = await Camera.requestForegroundPermissionsAsync();
+  //       if (status !== PermissionStatus.GRANTED) {
+  //         // Handle the lack of camera permission
+  //         console.log('Camera permission not granted');
+  //       }
+  //   })();
+  // }, []);
+
+  // const takePicture = async () => {
+  //   if (cameraRef.current && isCameraReady) {
+  //     const photo = await cameraRef.current.takePictureAsync();
+  //     console.log(photo);
+  //     // Handle the captured photo, e.g., send it as a message
+  //     const source=photo.uri;
+  //     if (source) {
+  //       await cameraRef.current.pausePreview();
+  //       const timestamp = new Date().toLocaleString();
+  //       const newMessage = {
+  //           content: source,
+  //           timestamp: timestamp,
+  //           sender: 'user', // 'user' indicates messages sent by the user
+  //           };
+  //       setChatMessages((prevMessages) => [...prevMessages, newMessage]);
+  //       setMessage('');
+  //       }
+  //     setCameraVisible(false);
+  //   }
+  // };
+  
+  const [startCamera, setStartCamera] = useState(false);
+  const [previewVisible, setPreviewVisible] = useState(false);
+  const [capturedImage, setCapturedImage] = useState(null);
+  const [flashMode, setFlashMode] = useState('off');
+  const [cameraType, setCameraType] = useState(Camera.Constants.Type.back);
+  const cameraRef = useRef(null);
 
   useEffect(() => {
-    // Ask for camera permission when the component mounts
     (async () => {
-        const { status } = await Camera.requestForegroundPermissionsAsync();
-        if (status !== PermissionStatus.GRANTED) {
-          // Handle the lack of camera permission
-          console.log('Camera permission not granted');
-        }
+      const { status } = await Camera.requestCameraPermissionsAsync();
+      if (status === 'granted') {
+        setStartCamera(true);
+      } else {
+        Alert.alert('Access denied');
+      }
     })();
   }, []);
 
-  const takePicture = async () => {
-    if (cameraRef.current && isCameraReady) {
-      const photo = await cameraRef.current.takePictureAsync();
-      console.log(photo);
-      // Handle the captured photo, e.g., send it as a message
-      const source=photo.uri;
-      if (source) {
-        await cameraRef.current.pausePreview();
-        const timestamp = new Date().toLocaleString();
-        const newMessage = {
-            content: source,
-            timestamp: timestamp,
-            sender: 'user', // 'user' indicates messages sent by the user
-            };
-        setChatMessages((prevMessages) => [...prevMessages, newMessage]);
-        setMessage('');
-        }
-      setCameraVisible(false);
+  const __startCamera = async () => {
+    const { status } = await Camera.requestCameraPermissionsAsync();
+    if (status === 'granted') {
+      setStartCamera(true);
+    } else {
+      Alert.alert('Access denied');
     }
   };
-  
+
+  const __takePicture = async () => {
+    if (!cameraRef.current) return;
+    const photo = await cameraRef.current.takePictureAsync();
+    setPreviewVisible(true);
+    setCapturedImage(photo);
+  };
+
+  const __retakePicture = () => {
+    setCapturedImage(null);
+    setPreviewVisible(false);
+    startCamera();
+  };
+
+  const __handleFlashMode = () => {
+    if (flashMode === 'on') {
+      setFlashMode('off');
+    } else if (flashMode === 'off') {
+      setFlashMode('on');
+    } else {
+      setFlashMode('auto');
+    }
+  };
+
+  const __switchCamera = () => {
+    if (cameraType === Camera.Constants.Type.back) {
+      setCameraType(Camera.Constants.Type.front);
+    } else {
+      setCameraType(Camera.Constants.Type.back);
+    }
+  };
 
   return (
     //SafeAreaView render content within the safe area boundaries of a device.
@@ -90,10 +150,47 @@ const ChatScreen = () => {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
 
-{cameraVisible ? (
+{/* {cameraVisible ? (
           // Render the camera view when cameraVisible is true
         <View style={styles.cameraContainer}>
-<Camera style={styles.camera} ref={cameraRef} onCameraReady={() => setIsCameraReady(true)} />
+<Camera style={styles.camera} ref={cameraRef} onCameraReady={() => setIsCameraReady(true)} /> */}
+          {startCamera ? (
+            <View style={styles.cameraContainer}>
+        <Camera
+          style={styles.camera}
+          type={cameraType}
+          flashMode={flashMode}
+          ref={cameraRef}
+        >
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              onPress={__switchCamera}
+              style={styles.button}
+            >
+              <Text style={styles.buttonText}>
+                {cameraType === Camera.Constants.Type.back ? '?' : '?'}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={__handleFlashMode}
+              style={styles.button}
+            >
+              <Text style={styles.buttonText}>⚡️</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.captureButtonContainer}>
+            <TouchableOpacity
+              onPress={__takePicture}
+              style={styles.captureButton}
+            />
+          </View>
+        </Camera>
+      ) : previewVisible && capturedImage ? (
+        <CameraPreview
+          photo={capturedImage}
+          savePhoto={() => {}}
+          retakePicture={__retakePicture}
+        />
           <View style={styles.cameraButtonsContainer}>
             <Button color= "#06b6d4" title="Take Picture" onPress={takePicture} />
             <Button color= "#06b6d4" title="Close Camera" onPress={handleCloseCamera} />
@@ -138,6 +235,22 @@ const ChatScreen = () => {
               )}
       </KeyboardAvoidingView>
     </SafeAreaView>
+  );
+};
+const CameraPreview = ({ photo, retakePicture }) => {
+  return (
+    <View style={styles.cameraPreviewContainer}>
+      <ImageBackground
+        source={{ uri: photo && photo.uri }}
+        style={styles.cameraPreview}
+      >
+        <View style={styles.cameraPreviewButtons}>
+          <TouchableOpacity onPress={retakePicture}>
+            <AntDesign name="retweet" size={24} color="white" />
+          </TouchableOpacity>
+        </View>
+      </ImageBackground>
+    </View>
   );
 };
 

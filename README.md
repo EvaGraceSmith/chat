@@ -9,7 +9,11 @@
 - **Phase 1** main focus is funcionality and proof of life.
 
 - As a user I would like to be able to see my messages as I type them into the text box.
-- As a user I would like to be able to chat with another user. (backend implementation soon)
+- As a user I would like to be able to chat with another user. (backend implementation eventually)
+
+- **Phase 2** 
+
+- As a user I would like to be able to use my camera to send photos
 
 ## Links and Resources
 
