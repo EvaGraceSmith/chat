@@ -1,10 +1,27 @@
-import React, { useState } from 'react';
-import { View, TextInput, Button, FlatList, Text, KeyboardAvoidingView, Platform, SafeAreaView, StyleSheet } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import {
+    View,
+    TextInput,
+    Button,
+    FlatList,
+    Text,
+    KeyboardAvoidingView,
+    Platform,
+    SafeAreaView,
+    StyleSheet,
+  } from 'react-native';
+  import { Camera } from 'expo-camera';
+  import { PermissionStatus } from 'expo-camera/build/Camera.types';
 
 const ChatScreen = () => {
   //setting our initial state for messages/chat messages
   const [message, setMessage] = useState('');
   const [chatMessages, setChatMessages] = useState([]);
+  const [cameraVisible, setCameraVisible] = useState(false); // Track camera visibility
+  const [isCameraReady, setIsCameraReady] = useState(false);
+  const [camera, setCamera] = useState(null);
+
+  const cameraRef = useRef(null); // Reference to the camera component
 
   //handler for messages/chat messages
   const handleSendMessage = () => {
@@ -21,6 +38,48 @@ const ChatScreen = () => {
     }
   };
 
+  const handleOpenCamera = () => {
+    setCameraVisible(true);
+  };
+
+  const handleCloseCamera = () => {
+    setIsCameraReady(false);
+    setCameraVisible(false);
+  };
+
+  useEffect(() => {
+    // Ask for camera permission when the component mounts
+    (async () => {
+        const { status } = await Camera.requestForegroundPermissionsAsync();
+        if (status !== PermissionStatus.GRANTED) {
+          // Handle the lack of camera permission
+          console.log('Camera permission not granted');
+        }
+    })();
+  }, []);
+
+  const takePicture = async () => {
+    if (cameraRef.current && isCameraReady) {
+      const photo = await cameraRef.current.takePictureAsync();
+      console.log(photo);
+      // Handle the captured photo, e.g., send it as a message
+      const source=photo.uri;
+      if (source) {
+        await cameraRef.current.pausePreview();
+        const timestamp = new Date().toLocaleString();
+        const newMessage = {
+            content: source,
+            timestamp: timestamp,
+            sender: 'user', // 'user' indicates messages sent by the user
+            };
+        setChatMessages((prevMessages) => [...prevMessages, newMessage]);
+        setMessage('');
+        }
+      setCameraVisible(false);
+    }
+  };
+  
+
   return (
     //SafeAreaView render content within the safe area boundaries of a device.
     // KeyboardAvoidingView will automatically adjust its height, position, or bottom padding based on the keyboard height to remain visible while the virtual keyboard is displayed.
@@ -30,6 +89,19 @@ const ChatScreen = () => {
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       > */}
+
+{cameraVisible ? (
+          // Render the camera view when cameraVisible is true
+        <View style={styles.cameraContainer}>
+<Camera style={styles.camera} ref={cameraRef} onCameraReady={() => setIsCameraReady(true)} />
+          <View style={styles.cameraButtonsContainer}>
+            <Button title="Take Picture" onPress={takePicture} />
+            <Button title="Close Camera" onPress={handleCloseCamera} />
+          </View>
+        </View>
+      ) : (
+
+
         <View style={styles.chatContainer}>
           <FlatList
             data={chatMessages}
@@ -56,14 +128,30 @@ const ChatScreen = () => {
               placeholderTextColor="#888888"
             />
             <Button title="Send" onPress={handleSendMessage} />
+            <Button title="Open Camera" onPress={handleOpenCamera} />
           </View>
         </View>
+              )}
       {/* </KeyboardAvoidingView> */}
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+
+    cameraContainer: {
+        flex: 1,
+      },
+      camera: {
+        flex: 1,
+      },
+      cameraButtonsContainer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        marginTop: 16,
+      },
+
+
     timestampContainer: {
       marginTop: 8,
     },
